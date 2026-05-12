@@ -1586,5 +1586,19 @@ if(savedMe&&db.users[savedMe]){
   launchApp();
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<script>
+
+const SUPABASE_URL = "https://phwspkvrplvqylapaxvq.supabase.co/rest/v1/";
+
+const SUPABASE_KEY = "sb_publishable_I1Gr-dMZGy4uBDIijovqew_SXHq2ZcE";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+</script>
 </body>
 </html>
