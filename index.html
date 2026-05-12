@@ -594,7 +594,21 @@ input::placeholder,textarea::placeholder{color:var(--txt2)}
     <div class="modal-footer" id="modal-footer"></div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
+<script>
+
+const SUPABASE_URL = "https://phwspkvrplvqylapaxvq.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_I1Gr-dMZGy4uBDIijovqew_SXHq2ZcE";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+</script>
+  
 <script>
 // ═══════════════════════════════════════
 // DATA & STATE
@@ -897,13 +911,26 @@ function openDM(uid){
 
 function dmKey(a,b){return[a,b].sort().join(':')}
 
-function renderMessages(chId){
-  const area=document.getElementById('messages-area');
-  area.innerHTML='';
-  const msgs=db.messages[chId]||[];
-  renderMsgList(area,msgs,chId,false);
-}
+async function renderMessages(chId){
 
+  const area = document.getElementById('messages-area');
+
+  area.innerHTML = '';
+
+  const { data, error } = await supabaseClient
+    .from('messages')
+    .select('*')
+    .order('ts', { ascending:true });
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  data.forEach(msg => {
+    appendMessage(msg, chId, false);
+  });
+}
 function renderDMMessages(uid){
   const area=document.getElementById('messages-area');
   area.innerHTML='';
@@ -1585,20 +1612,29 @@ if(savedMe&&db.users[savedMe]){
   saveDB();
   launchApp();
 }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-<script>
+  supabaseClient
+  .channel('messages-channel')
 
-const SUPABASE_URL = "https://phwspkvrplvqylapaxvq.supabase.co/rest/v1/";
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages'
+    },
 
-const SUPABASE_KEY = "sb_publishable_I1Gr-dMZGy4uBDIijovqew_SXHq2ZcE";
+    payload => {
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+      const msg = payload.new;
 
+      appendMessage(msg, currentChannel, false);
+
+    }
+  )
+
+  .subscribe();
+  
 </script>
 </body>
 </html>
